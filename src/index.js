@@ -14,7 +14,7 @@ class App extends React.Component {
         this.state = {
             userMessages: [],
             botMessages: [],
-            botGreeting: 'Hi, my name is PizzaBot! I can help you get pizza. Try typing something like \"I want a pepperoni pizza.\" below.',
+            botGreeting: 'Hi, my name is NetworkBot! I can help you get pizza. Try typing something like \"I have a high server load.\" below.',
             botLoading: false,
         }
     }
