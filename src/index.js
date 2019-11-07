@@ -4,10 +4,8 @@ import './index.css';
 import chatLoader from './images/chat-loader.svg';
 import botAvatar from './images/pizza-avatar.svg';
 import uuid from 'uuid'
-import axio from 'axios'
 import {GetAccessToken, ClaimSet} from "./googleAuth";
 
-const { OAuth2Client } = require('google-auth-library');
 
 class App extends React.Component {
 

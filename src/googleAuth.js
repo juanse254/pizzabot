@@ -42,7 +42,6 @@ export let claimSetPlusPK_cachedData = [];
 
 export async function GetAccessToken(claimSet, privateKey) {
     const claimSetPlusPK_json = JSON.stringify({claimSet, privateKey});
-    let token = '';
     // if access-token is not cached, or cached token is expired (expires after 60m, but we get new one at 59m to be safe)
      const cachedData = claimSetPlusPK_cachedData[claimSetPlusPK_json];
      //const cachedData = null;
@@ -62,7 +61,7 @@ export async function GetAccessToken(claimSet, privateKey) {
         });
         const responseJSON = await response.json();
         console.log(`Got access token: ${responseJSON.access_token}`);
-        token = responseJSON.access_token;
+        const token = responseJSON.access_token;
         claimSetPlusPK_cachedData[claimSetPlusPK_json] = {accessToken: responseJSON.access_token, cacheTime: Date.now()};
     }
 
