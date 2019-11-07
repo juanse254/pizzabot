@@ -21,7 +21,6 @@ class App extends React.Component {
             id,
             projectId,
             serviceAccountEmail,
-            serviceAccountPrivateKey,
             userMessages: [],
             botMessages: [],
             botGreeting: 'Hi, my name is NetworkBot! I can help you get pizza. Try typing something like \"I have a high server load.\" below.',
