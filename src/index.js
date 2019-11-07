@@ -76,9 +76,7 @@ class App extends React.Component {
 
         const responseJSON = await response.json();
         console.log("Got responseJSON: ", responseJSON);
-        debugger;
-        const speechText = responseJSON.queryResult.queryText || "";
-        return speechText;
+        return responseJSON;
     }
 
     updateUserMessages = (newMessage) => {
@@ -96,16 +94,19 @@ class App extends React.Component {
         })
 
         // Get the request to DialogFlow in a nice little package with the user's message
-        let responseBot = this.ConvertSpeechToText(newMessage)
-        console.log('BOT RESPONSE:', responseBot);
-        // End conversation once user hits end flag in API
+        const responseBot = this.ConvertSpeechToText(newMessage);
+        responseBot.then( (val) => {
+        console.log('BOT RESPONSE:', val);
         debugger;
-        var botResponse = responseBot;
+        // End conversation once user hits end flag in API
+        let botResponse = val.queryResult.fulfillmentText;
         // Update state with both user and bot's latest messages
         this.setState({
             botMessages: updatedBotMessagesArr.concat(botResponse),
             botLoading: false,
         })
+    })
+
     }
 
     showMessages() {
@@ -134,7 +135,6 @@ class App extends React.Component {
     }
 
     render() {
-        this.auth();
         return (
             <div id="app-container">
                
