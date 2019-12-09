@@ -11,6 +11,7 @@ class App extends React.Component {
 
     constructor(props) {
         super(props);
+        const extractedEntities = [];
 
         const id = new uuid();
         const projectId = 'stone-column-256215';
@@ -23,6 +24,7 @@ class App extends React.Component {
             botMessages: [],
             botGreeting: 'Hi, my name is NetworkBot! I can help you to solve your security issue. Try typing something like \"I have a high server load.\" below.',
             botLoading: false,
+            extractedEntities
         }
     }
 
@@ -94,15 +96,21 @@ class App extends React.Component {
         // Get the request to DialogFlow in a nice little package with the user's message
         const responseBot = this.ConvertSpeechToText(newMessage);
         responseBot.then( (val) => {
-        console.log('BOT RESPONSE:', val);
-        debugger;
-        // End conversation once user hits end flag in API
-        let botResponse = val.queryResult.fulfillmentText;
-        // Update state with both user and bot's latest messages
-        this.setState({
-            botMessages: updatedBotMessagesArr.concat(botResponse),
-            botLoading: false,
-        })
+            const parameters = val.queryResult.parameters;
+            if(!(Object.keys(parameters).length === 0)){
+                Object.keys(parameters).map(elements => {
+                    this.state.extractedEntities.push({[elements] : parameters[elements]});
+                    debugger;
+                });
+            }
+            console.log('BOT RESPONSE:', val);
+            // End conversation once user hits end flag in API
+            let botResponse = val.queryResult.fulfillmentText;
+            // Update state with both user and bot's latest messages
+            this.setState({
+                botMessages: updatedBotMessagesArr.concat(botResponse),
+                botLoading: false,
+            })
     })
 
     }
