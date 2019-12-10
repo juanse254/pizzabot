@@ -12,8 +12,8 @@ class App extends React.Component {
     constructor(props) {
         super(props);
         const extractedEntities = [];
-
-        const id = new uuid();
+        const accessToken = '';
+        const id = uuid();
         const projectId = 'stone-column-256215';
         const serviceAccountEmail = 'dialogflow-mypfjy@stone-column-256215.iam.gserviceaccount.com';
         this.state = {
@@ -24,11 +24,12 @@ class App extends React.Component {
             botMessages: [],
             botGreeting: 'Hi, my name is NetworkBot! I can help you to solve your security issue. Try typing something like \"I have a high server load.\" below.',
             botLoading: false,
-            extractedEntities
+            extractedEntities,
+            accessToken
         }
     }
 
-    async ConvertSpeechToText(textString) {
+    async getCredentials(){
         const claimSet = new ClaimSet(["https://www.googleapis.com/auth/cloud-platform"], 'dialogflow-mypfjy@stone-column-256215.iam.gserviceaccount.com');
         const accessToken = await GetAccessToken(claimSet,'-----BEGIN PRIVATE KEY-----\n' +
             'MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCOEpaPs9EwUue2\n' +
@@ -58,10 +59,17 @@ class App extends React.Component {
             'JTiqY0bQlnLEJkQGMkJhcbWFX6Ek3x8R68drOo9tUC87zV5WZVCYaaLNcObffyxS\n' +
             'Nr2CPZVR3Uxv+xnj4LeHStlX\n' +
             '-----END PRIVATE KEY-----\n');
+        this.state.accessToken = accessToken;
+    }
+    componentDidMount = () => {
+        this.getCredentials();
+    };
+
+    async ConvertSpeechToText(textString) {
         const response = await fetch(`https://dialogflow.googleapis.com/v2beta1/projects/${this.state.projectId}/agent/sessions/${this.state.id}:detectIntent`, {
             method: "POST",
             headers: {
-                authorization: `Bearer ${accessToken}`,
+                authorization: `Bearer ${this.state.accessToken}`,
                 "content-type": "application/json",
             },
             body: JSON.stringify({
@@ -99,11 +107,22 @@ class App extends React.Component {
             const parameters = val.queryResult.parameters;
             if(!(Object.keys(parameters).length === 0)){
                 Object.keys(parameters).map(elements => {
+                    val.queryResult.outputContexts.map( context => {
+                        if(context.parameters['attack_elements.original']){
+                            let original = context.parameters['attack_elements.original'];
+                            let key = elements + "original";
+                            this.state.extractedEntities.push({key : original});
+                            debugger;
+                        }
+                    });
                     this.state.extractedEntities.push({[elements] : parameters[elements]});
-                    debugger;
                 });
             }
             console.log('BOT RESPONSE:', val);
+            let end = val.queryResult.diagnosticInfo;
+            if(end){
+                console.log(this.state.extractedEntities);
+            }
             // End conversation once user hits end flag in API
             let botResponse = val.queryResult.fulfillmentText;
             // Update state with both user and bot's latest messages
