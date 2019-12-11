@@ -87,6 +87,15 @@ class App extends React.Component {
         return responseJSON;
     }
 
+    findDuplicates(arrayBag, element){
+        const exists = arrayBag.some(value => {
+            if (Object.values(value).indexOf(element) > -1) {
+                return true;
+            }
+        });
+        return exists;
+    }
+
     updateUserMessages = (newMessage) => {
 
         // Create a new array from current user messages
@@ -110,9 +119,11 @@ class App extends React.Component {
                     val.queryResult.outputContexts.map( context => {
                         if(context.parameters['attack_elements.original']){
                             let original = context.parameters['attack_elements.original'];
-                            let key = elements + "original";
-                            this.state.extractedEntities.push({key : original});
-                            debugger;
+                            let key =  "attack_elements_original"; //TODO:fix saving the original query to pass to recomending system.
+                            const existing_elements = this.state.extractedEntities;
+                            let returnVal = this.findDuplicates(existing_elements, context.parameters['attack_elements.original'] );
+                            if(!returnVal)
+                                this.state.extractedEntities.push({[key] : original});
                         }
                     });
                     this.state.extractedEntities.push({[elements] : parameters[elements]});
