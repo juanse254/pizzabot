@@ -113,26 +113,28 @@ class App extends React.Component {
         // Get the request to DialogFlow in a nice little package with the user's message
         const responseBot = this.ConvertSpeechToText(newMessage);
         responseBot.then( (val) => {
-            const parameters = val.queryResult.parameters;
-            if(!(Object.keys(parameters).length === 0)){
-                Object.keys(parameters).map(elements => {
-                    val.queryResult.outputContexts.map( context => {
-                        if(context.parameters['attack_elements.original']){
-                            let original = context.parameters['attack_elements.original'];
-                            let key =  "attack_elements_original"; //TODO:fix saving the original query to pass to recomending system.
-                            const existing_elements = this.state.extractedEntities;
-                            let returnVal = this.findDuplicates(existing_elements, context.parameters['attack_elements.original'] );
-                            if(!returnVal)
-                                this.state.extractedEntities.push({[key] : original});
-                        }
-                    });
-                    this.state.extractedEntities.push({[elements] : parameters[elements]});
-                });
-            }
+            this.state.extractedEntities.push(this.extractMessage(val)); //Here i can add a tag such as intent 1.
+            // const parameters = val.queryResult.parameters;
+            // if(!(Object.keys(parameters).length === 0)){
+            //     Object.keys(parameters).map(elements => {
+            //         val.queryResult.outputContexts.map( context => {
+            //             if(context.parameters['attack_elements.original']){
+            //                 let original = context.parameters['attack_elements.original'];
+            //                 let key =  "attack_elements_original"; //TODO:fix saving the original query to pass to recomending system.
+            //                 const existing_elements = this.state.extractedEntities;
+            //                 let returnVal = this.findDuplicates(existing_elements, context.parameters['attack_elements.original'] );
+            //                 if(!returnVal)
+            //                     this.state.extractedEntities.push({[key] : original});
+            //             }
+            //         });
+            //         this.state.extractedEntities.push({[elements] : parameters[elements]});
+            //     });
+            // }
             console.log('BOT RESPONSE:', val);
             let end = val.queryResult.diagnosticInfo;
             if(end){
                 console.log(this.state.extractedEntities);
+                console.log(JSON.stringify(this.state.extractedEntities));
             }
             // End conversation once user hits end flag in API
             let botResponse = val.queryResult.fulfillmentText;
@@ -143,6 +145,53 @@ class App extends React.Component {
             })
     })
 
+    }
+
+    extractMessage(responseText) {
+        var contexts = responseText.queryResult.outputContexts;
+        let completeFilteredArray = [];
+        if (contexts) {
+            contexts.map(context => { //array of parameters
+                if (context.parameters) {
+                    const parameterArray = this.convert(context.parameters);
+                    let filteredArray = [];
+                    parameterArray.map(parameter => { //each parameter
+                        if(!filteredArray.some( element => element === parameter)){
+                              filteredArray.push(parameter);
+                         }
+                        }
+                    );
+                    const cars1IDs = new Set(completeFilteredArray.map(({ id }) => id));
+                    completeFilteredArray = [...completeFilteredArray, ...filteredArray.filter(({ id }) => !cars1IDs.has(id))];
+                }
+            });
+            return completeFilteredArray;
+        }
+    }
+
+    arrayUnique(array) {
+        var a = array.concat();
+        for(var i=0; i<a.length; ++i) {
+            for(var j=i+1; j<a.length; ++j) {
+                if(a[i] === a[j])
+                    a.splice(j--, 1);
+            }
+        }
+        return a;
+    }
+
+    convert(obj) {
+        return Object.keys(obj).reduce((result, key) => {
+            if(obj[key][0]) {
+                if(Array.isArray(obj[key])){
+                    result.push({[key]: obj[key][0]});
+                }
+                else{
+                    result.push({[key]: obj[key]});
+                }
+            }
+            return result;
+        }, []);
     }
 
     showMessages() {
